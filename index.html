@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F4C542">
+<meta name="description" content="Shared taxi coordination for a four-person team">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Our Cab</title>
+<style>
+:root{--yellow:#f4c542;--ink:#17202a;--muted:#6b7280;--bg:#f6f7f8;--card:#fff;--line:#e7e9ec;--green:#17845b;--red:#c94b4b;--shadow:0 8px 30px rgba(23,32,42,.08)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select{font:inherit}button{cursor:pointer;border:0}.app{max-width:520px;margin:auto;min-height:100vh;padding:18px 16px 92px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.brand{display:flex;gap:10px;align-items:center;font-weight:800;font-size:21px}.cabicon{width:38px;height:38px;border-radius:12px;background:var(--yellow);display:grid;place-items:center;font-size:21px}
+.avatar{width:38px;height:38px;border-radius:50%;background:#fff;border:1px solid var(--line);display:grid;place-items:center;font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:800;color:var(--muted)}h1,h2,h3,p{margin:0}.status{display:flex;justify-content:space-between;align-items:flex-start}.pill{padding:7px 10px;border-radius:999px;font-size:11px;font-weight:800;background:#eaf7f1;color:var(--green)}.pill.busy{background:#fff4d4;color:#785b00}
+.driver{font-size:28px;font-weight:850;margin-top:6px}.time{color:var(--muted);margin-top:3px}.location{display:flex;gap:8px;align-items:center;margin-top:16px;font-weight:700}.sub{font-size:12px;color:var(--muted);font-weight:500}
+.next{background:#17202a;color:white;border-radius:22px;padding:18px;margin-bottom:14px}.next .eyebrow{color:#aeb7c2}.next strong{font-size:18px}.nextrow{display:flex;justify-content:space-between;align-items:end;margin-top:6px}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:12px}.action{background:#fff;border:1px solid var(--line);border-radius:20px;padding:18px;text-align:left;min-height:92px;box-shadow:0 4px 16px rgba(23,32,42,.05)}.action .ico{font-size:25px;margin-bottom:10px}.action b{display:block;font-size:15px}.action span{font-size:12px;color:var(--muted)}
+.sectiontitle{display:flex;justify-content:space-between;align-items:center;margin:22px 2px 10px}.sectiontitle h2{font-size:16px}.link{background:none;color:#6b7280;font-size:12px}
+.booking{display:flex;gap:12px;align-items:center}.datebox{width:52px;text-align:center;border-radius:14px;background:#f1f3f5;padding:8px 4px}.datebox b{font-size:20px;display:block}.datebox span{font-size:10px;text-transform:uppercase;color:var(--muted);font-weight:800}.bmain{flex:1}.bmain b{font-size:15px}.bmain p{font-size:12px;color:var(--muted);margin-top:3px}.tag{font-size:10px;font-weight:800;padding:5px 8px;background:#f4f5f6;border-radius:999px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:rgba(246,247,248,.94);backdrop-filter:blur(12px);padding:10px 16px calc(10px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}.bottomin{max-width:520px;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.nav{background:transparent;padding:8px;border-radius:14px;color:var(--muted);font-size:11px}.nav.active{background:#fff;color:var(--ink);font-weight:800}
+.modal{position:fixed;inset:0;background:rgba(10,15,20,.45);display:none;align-items:end;z-index:5}.modal.show{display:flex}.sheet{background:#fff;width:100%;max-width:520px;margin:auto;border-radius:26px 26px 0 0;padding:20px 18px 28px;max-height:90vh;overflow:auto}.handle{width:38px;height:4px;border-radius:4px;background:#d7dbe0;margin:0 auto 18px}.sheet h2{font-size:21px;margin-bottom:14px}.field{margin:12px 0}.field label{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px}.field input,.field select{width:100%;padding:13px;border:1px solid var(--line);border-radius:13px;background:#fafafa}.primary{width:100%;background:var(--yellow);padding:14px;border-radius:14px;font-weight:850;margin-top:8px}.secondary{width:100%;background:#f1f3f5;padding:12px;border-radius:14px;font-weight:700;margin-top:8px}
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-15px);background:#17202a;color:#fff;padding:11px 15px;border-radius:999px;font-size:12px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:10}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.smallnote{font-size:11px;color:var(--muted);line-height:1.45;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="toast" class="toast"></div>
+<div class="app">
+<header><div class="brand"><div class="cabicon">🚕</div>Our Cab</div><div class="avatar" id="meAvatar">B</div></header>
+
+<section class="card">
+  <div class="status">
+    <div><div class="eyebrow">The car</div><div class="driver" id="statusTitle">In use</div><div class="time" id="statusTime">Brian · Today, 14:00–23:00</div></div>
+    <div class="pill busy" id="statusPill">IN USE</div>
+  </div>
+  <div class="location">📍 <span id="carLocation">Sean & Helen's</span></div>
+  <div class="sub" id="locationUpdated">Last updated 06:42 today</div>
+</section>
+
+<section class="next">
+  <div class="eyebrow">Next</div>
+  <div class="nextrow"><div><strong id="nextDriver">Sean</strong><div class="sub" style="color:#aeb7c2" id="nextTime">Tomorrow · 07:00–15:00</div></div><span>→</span></div>
+</section>
+
+<section class="actions">
+  <button class="action" onclick="openBook()"><div class="ico">＋</div><b>Book the car</b><span>Plan a time</span></button>
+  <button class="action" onclick="showMyBookings()"><div class="ico">▣</div><b>My bookings</b><span>See your times</span></button>
+  <button class="action" onclick="openLocation()"><div class="ico">⌖</div><b>Car location</b><span>Where is it now?</span></button>
+  <button class="action" onclick="openMessages()"><div class="ico">•••</div><b>Messages</b><span>Team notes</span></button>
+</section>
+
+<div class="sectiontitle"><h2>Coming up</h2><button class="link" onclick="showAll()">View all</button></div>
+<div id="bookingList"></div>
+</div>
+
+<nav class="bottom"><div class="bottomin">
+<button class="nav active">⌂<br>Home</button><button class="nav" onclick="showAll()">▤<br>Bookings</button><button class="nav" onclick="openMessages()">☷<br>Messages</button>
+</div></nav>
+
+<div class="modal" id="modal"><div class="sheet"><div class="handle"></div><div id="sheetContent"></div></div></div>
+
+<script>
+const people={Brian:'B',Dave:'D',Helen:'H',Sean:'S'};
+let bookings=[
+ {id:1,person:'Brian',day:'Today',date:'4 Oct',start:'14:00',end:'23:00',kind:'Override'},
+ {id:2,person:'Sean',day:'Tomorrow',date:'5 Oct',start:'07:00',end:'15:00',kind:'Routine'},
+ {id:3,person:'Dave',day:'Sat',date:'10 Oct',start:'05:00',end:'13:00',kind:'Routine'},
+ {id:4,person:'Helen',day:'Mon',date:'12 Oct',start:'07:00',end:'15:00',kind:'Routine'}
+];
+let location='Sean & Helen\\'s';
+
+function render(){
+ document.getElementById('bookingList').innerHTML=bookings.slice(0,4).map(b=>`
+ <div class="card"><div class="booking"><div class="datebox"><b>${b.date.split(' ')[0]}</b><span>${b.day}</span></div>
+ <div class="bmain"><b>${b.person}</b><p>${b.start}–${b.end}</p></div><span class="tag">${b.kind}</span></div></div>`).join('');
+ document.getElementById('carLocation').textContent=location;
+}
+function toast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');setTimeout(()=>x.classList.remove('show'),2200)}
+function closeModal(){document.getElementById('modal').classList.remove('show')}
+function openBook(){
+ document.getElementById('sheetContent').innerHTML=`<h2>Book the car</h2>
+ <div class="field"><label>WHO</label><select id="who"><option>Brian</option><option>Sean</option><option>Helen</option><option>Dave</option></select></div>
+ <div class="field"><label>DATE</label><input id="date" type="date" value="2026-10-08"></div>
+ <div class="field"><label>FROM</label><input id="start" type="time" value="14:00"></div>
+ <div class="field"><label>UNTIL</label><input id="end" type="time" value="23:00"></div>
+ <button class="primary" onclick="saveBooking()">Book it</button><button class="secondary" onclick="closeModal()">Cancel</button>
+ <p class="smallnote">If this overlaps someone else's booking, the app will show the conflict and let you override it.</p>`;
+ document.getElementById('modal').classList.add('show');
+}
+function saveBooking(){
+ const who=document.getElementById('who').value, date=document.getElementById('date').value, start=document.getElementById('start').value, end=document.getElementById('end').value;
+ const d=new Date(date+'T12:00:00'); const day=d.toLocaleDateString('en-AU',{weekday:'short'}), daynum=d.getDate()+' '+d.toLocaleDateString('en-AU',{month:'short'});
+ const overlap=bookings.find(b=>b.date===daynum);
+ if(overlap){toast(`Overrides ${overlap.person}'s booking`); bookings=bookings.filter(b=>b!==overlap)}
+ bookings.unshift({id:Date.now(),person:who,day,date:daynum,start,end,kind:'Override'});
+ closeModal();render();toast(`Booked for ${who} · ${day} ${start}–${end}`);
+}
+function openLocation(){
+ document.getElementById('sheetContent').innerHTML=`<h2>Car location</h2>
+ <div class="field"><label>CURRENT LOCATION</label><select id="loc"><option>Sean & Helen's</option><option>Dave's</option><option>Brian's</option><option>Other</option></select></div>
+ <div class="field"><label>NOTE</label><input id="locnote" placeholder="Optional pickup note"></div>
+ <button class="primary" onclick="saveLocation()">Update location</button><button class="secondary" onclick="closeModal()">Cancel</button>`;
+ document.getElementById('modal').classList.add('show');
+}
+function saveLocation(){location=document.getElementById('loc').value;closeModal();render();toast(`Car location updated · ${location}`)}
+function openMessages(){
+ document.getElementById('sheetContent').innerHTML=`<h2>Messages</h2>
+ <div class="card" style="box-shadow:none;background:#f6f7f8"><b>Helen · 18:31</b><p class="smallnote">Car is back at ours. Fuelled.</p></div>
+ <div class="card" style="box-shadow:none;background:#f6f7f8"><b>Dave · 05:02</b><p class="smallnote">Taking car from Sean & Helen's.</p></div>
+ <div class="field"><label>NEW MESSAGE</label><input id="msg" placeholder="Type a team note"></div>
+ <button class="primary" onclick="sendMessage()">Send</button><button class="secondary" onclick="closeModal()">Close</button>`;
+ document.getElementById('modal').classList.add('show');
+}
+function sendMessage(){const m=document.getElementById('msg').value.trim();if(m){closeModal();toast('Message sent to the team')}}
+function showMyBookings(){toast('Showing Brian’s bookings');}
+function showAll(){toast('Full booking calendar coming in the next build');}
+render();
+</script>
+</body>
+</html>
